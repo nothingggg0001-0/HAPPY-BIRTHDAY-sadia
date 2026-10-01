@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Happy Birthday 💌</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* --- RESET & BASE --- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #ffe0ee 0%, #ffb6d5 30%, #ff8ab8 60%, #ff6b9d 100%);
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+      position: relative;
+      perspective: 1200px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* --- FLOATING HEARTS --- */
+    .floating-heart {
+      position: fixed;
+      bottom: -80px;
+      font-size: 30px;
+      animation: floatUpHeart linear infinite;
+      opacity: 0.7;
+      z-index: 0;
+      pointer-events: none;
+      filter: drop-shadow(0 4px 8px rgba(255, 77, 141, 0.3));
+    }
+    @keyframes floatUpHeart {
+      0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.9; }
+      90% { opacity: 0.9; }
+      100% { transform: translateY(-115vh) scale(1.2) rotate(20deg); opacity: 0; }
+    }
+
+    /* --- SPARKLES --- */
+    .sparkle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      animation: sparkleAnim 1.8s ease-in-out infinite;
+      font-size: 20px;
+    }
+    @keyframes sparkleAnim {
+      0%, 100% { transform: scale(0) rotate(0deg); opacity: 0; }
+      50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+    }
+
+    /* --- CONFETTI CANVAS --- */
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* --- ENVELOPE WRAPPER --- */
+    .envelope-wrapper {
+      position: relative;
+      z-index: 2;
+      cursor: pointer;
+      transition: transform 0.4s ease, opacity 0.6s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .envelope-wrapper:hover { transform: scale(1.03); }
+    .envelope-wrapper.fade-out {
+      opacity: 0;
+      transform: scale(0.8);
+      pointer-events: none;
+    }
+
+    /* --- ENVELOPE --- */
+    .envelope {
+      position: relative;
+      width: 360px;
+      height: 230px;
+      background: #ffe0ee;
+      border-radius: 15px;
+      box-shadow: 0 25px 50px rgba(255, 77, 141, 0.3), 0 0 0 10px #fff, 0 0 0 14px #ff4d8d;
+      transition: all 0.5s ease;
+      transform-style: preserve-3d;
+    }
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffc2dd;
+      clip-path: polygon(0 0, 100% 0, 50% 55%);
+      transform-origin: top;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 3;
+      border-radius: 15px 15px 0 0;
+    }
+    .envelope-front {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 62%;
+      background: #ffe0ee;
+      border-radius: 0 0 15px 15px;
+      z-index: 2;
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.05);
+      clip-path: polygon(0 0, 50% 48%, 100% 0, 100% 100%, 0 100%);
+    }
+    .wax-seal {
+      position: absolute;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 55px;
+      height: 55px;
+      background: radial-gradient(circle at 30% 30%, #ff8aa1, #e91e63);
+      border-radius: 50%;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2), inset 0 -3px 8px rgba(0,0,0,0.2);
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+    .envelope.open .wax-seal {
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+    }
+    .envelope.open .envelope-flap {
+      transform: rotateX(180deg);
+      z-index: 1;
+    }
+    .envelope.open .envelope-front {
+      z-index: 1;
+      opacity: 0.25;
+      transition: opacity 0.5s ease 0.3s;
+    }
+
+    /* --- LETTER PREVIEW (inside envelope) --- */
+    .letter-preview {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: calc(100% - 20px);
+      height: calc(100% - 20px);
+      background: #fff5f9;
+      border-radius: 10px;
+      z-index: 2;
+      opacity: 0;
+      transform: translateY(0);
+      transition: transform 0.6s ease 0.3s, opacity 0.5s ease 0.3s;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #e91e63;
+      font-weight: 600;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    .envelope.open .letter-preview {
+      opacity: 1;
+      transform: translateY(-30px);
+    }
+
+    /* --- INSTRUCTION --- */
+    .instruction {
+      position: absolute;
+      bottom: -55px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: #e91e63;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+      animation: bounce 2s infinite;
+      pointer-events: none;
+      z-index: 10;
+      transition: opacity 0.5s;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-8px); }
+    }
+
+    /* --- FULLSCREEN LETTER --- */
+    .fullscreen-letter {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #fff5f9;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.8s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .fullscreen-letter.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .fullscreen-letter .letter-content {
+      max-width: 700px;
+      width: 100%;
+      background: #fff;
+      border-radius: 25px;
+      padding: 50px 40px;
+      box-shadow: 0 30px 60px rgba(255, 77, 141, 0.25), 0 0 0 10px #fff, 0 0 0 14px #ff4d8d;
+      position: relative;
+      text-align: center;
+      animation: letterEntrance 1s ease-out;
+    }
+    @keyframes letterEntrance {
+      0% { transform: translateY(40px) scale(0.9); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 2rem;
+      background: none;
+      border: none;
+      color: #ff4d8d;
+      cursor: pointer;
+      transition: transform 0.2s;
+      line-height: 1;
+    }
+    .close-btn:hover { transform: scale(1.2); }
+
+    /* --- LETTER CONTENT --- */
+    .letter-header .crown {
+      font-size: 55px;
+      display: block;
+      margin-bottom: 5px;
+      animation: crownGlow 2s ease-in-out infinite;
+    }
+    @keyframes crownGlow {
+      0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 77, 141, 0.5)); }
+      50% { filter: drop-shadow(0 0 30px rgba(255, 77, 141, 0.9)); }
+    }
+    .letter-header h1 {
+      font-family: 'Dancing Script', cursive;
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #e91e63;
+      line-height: 1.2;
+      text-shadow: 3px 3px 0 rgba(255, 77, 141, 0.2);
+      margin: 0;
+    }
+    .letter-header .subtitle {
+      font-size: 1rem;
+      color: #888;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 5px;
+      font-weight: 300;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 25px 0;
+    }
+    .divider .line {
+      width: 80px;
+      height: 2px;
+      background: linear-gradient(to right, transparent, #ff4d8d);
+    }
+    .divider .line:last-child {
+      background: linear-gradient(to left, transparent, #ff4d8d);
+    }
+    .divider .heart {
+      color: #ff4d8d;
+      font-size: 25px;
+      animation: heartPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.4); }
+    }
+    .letter-body {
+      font-size: 1.1rem;
+      color: #555;
+      line-height: 2;
+      font-weight: 300;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+    .letter-body .highlight { color: #e91e63; font-weight: 600; }
+    .letter-body .name {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.8rem;
+      color: #c084fc;
+      font-weight: 700;
+    }
+    .letter-body p { margin-bottom: 15px; }
+    .letter-signature {
+      font-family: 'Dancing Script', cursive;
+      font-size: 2rem;
+      color: #c084fc;
+      margin-top: 10px;
+    }
+    .letter-signature .signature-line {
+      display: block;
+      font-size: 1rem;
+      font-family: 'Poppins', sans-serif;
+      color: #aaa;
+      font-weight: 300;
+      letter-spacing: 2px;
+      margin-top: 5px;
+    }
+
+    /* --- CUTE STICKERS CONTAINER (MOBILE FIX) --- */
+    .stickers-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 25px auto 10px;
+      flex-wrap: wrap; 
+    }
+    .cute-sticker {
+      width: 130px;
+      max-width: 45%; 
+      height: auto;
+      filter: drop-shadow(0 5px 15px rgba(0,0,0,0.15));
+      animation: floatSticker 3s ease-in-out infinite;
+      transition: transform 0.3s ease;
+    }
+    .cute-sticker:hover {
+      transform: scale(1.1) rotate(5deg) !important;
+      animation-play-state: paused;
+    }
+    @keyframes floatSticker {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+
+    /* --- HEART BUTTON (in letter) --- */
+    .heart-btn {
+      margin-top: 20px;
+      background: none;
+      border: 2px solid #ff4d8d;
+      color: #e91e63;
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #fff;
+      box-shadow: 0 5px 15px rgba(255, 77, 141, 0.2);
+    }
+    .heart-btn:hover {
+      background: #e91e63;
+      color: #fff;
+      border-color: #e91e63;
+      transform: scale(1.05);
+    }
+
+    /* --- BIG SLIDING HEART --- */
+    .big-heart {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) translateX(100vw);
+      width: 300px;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: transform 2s ease-in-out;
+      pointer-events: none;
+    }
+    .big-heart .heart-emoji {
+      font-size: 280px;
+      line-height: 1;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 10px 30px rgba(255, 77, 141, 0.5));
+    }
+    .big-heart .heart-text {
+      position: relative;
+      z-index: 1;
+      font-family: 'Dancing Script', cursive;
+      font-size: 2rem;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      text-align: center;
+      padding: 10px;
+      max-width: 200px;
+      pointer-events: none;
+      word-wrap: break-word;
+      font-weight: 700;
+    }
+    .big-heart.center { transform: translate(-50%, -50%) translateX(0); }
+    .big-heart.left { transform: translate(-50%, -50%) translateX(-100vw); }
+
+    /* --- SLIDING PHOTOS SURPRISE --- */
+    .sliding-photos {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) translateX(100vw);
+      width: 90%;
+      max-width: 500px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
+      transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+      pointer-events: none;
+    }
+    .sliding-photos.show {
+      transform: translate(-50%, -50%) translateX(0);
+      pointer-events: auto;
+    }
+    .photo-frame {
+      width: 70%;
+      max-width: 350px;
+      background: #fff;
+      padding: 12px 12px 30px 12px;
+      border-radius: 8px;
+      box-shadow: 0 15px 35px rgba(255, 77, 141, 0.4);
+      transform: rotate(-4deg);
+      transition: transform 0.3s ease;
+    }
+    .photo-frame img {
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+      display: block;
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 600px) {
+      .envelope { width: 300px; height: 200px; }
+      .fullscreen-letter .letter-content { padding: 30px 20px; border-radius: 15px; }
+      .letter-header h1 { font-size: 2.5rem; }
+      .letter-body { font-size: 0.95rem; line-height: 1.8; }
+      .letter-signature { font-size: 1.6rem; }
+      .stickers-container { gap: 10px; }
+      .cute-sticker { width: 100px; max-width: 45%; }
+      .instruction { font-size: 0.8rem; padding: 8px 18px; bottom: -50px; }
+      .close-btn { top: 10px; right: 15px; font-size: 1.8rem; }
+      .big-heart { width: 200px; height: 190px; }
+      .big-heart .heart-emoji { font-size: 190px; }
+      .big-heart .heart-text { font-size: 1.3rem; max-width: 150px; }
+      .heart-btn { font-size: 0.9rem; padding: 10px 20px; }
+      .sliding-photos { 
+        width: 90%; 
+      }
+      .photo-frame { 
+        width: 80%; 
+        max-width: 250px; 
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating hearts container -->
+  <div id="hearts-container"></div>
+  <!-- Sparkles container -->
+  <div id="sparkles-container"></div>
+  <!-- Confetti canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- ENVELOPE -->
+  <div class="envelope-wrapper" id="envelopeWrapper">
+    <div class="envelope" id="envelope">
+      <div class="envelope-flap"></div>
+      <div class="envelope-front"></div>
+      <div class="wax-seal">💌</div>
+      <div class="letter-preview">💖 Happy Birthday 💖</div>
+    </div>
+    <div class="instruction" id="instruction">💗 Click to Open Your Letter 💗</div>
+  </div>
+
+  <!-- FULLSCREEN LETTER OVERLAY -->
+  <div class="fullscreen-letter" id="fullscreenLetter">
+    <div class="letter-content">
+      <button class="close-btn" id="closeBtn">✕</button>
+      <div class="letter-header">
+        <span class="crown">👑</span>
+        <h1>Happy Birthday!</h1>
+        <div class="subtitle">✦ To the most amazing girl ✦</div>
+      </div>
+      <div class="divider">
+        <span class="line"></span>
+        <span class="heart">💖</span>
+        <span class="line"></span>
+      </div>
+      <div class="letter-body">
+        <p>Dear Birthday Girl,</p>
+        <p>Today is your day — a day as bright and wonderful as you are! May your world be filled with laughter, love, and all the sweet things that make life beautiful.</p>
+        <p>I cannot finish going on and on about how much of an amazing person you are, genuinely. Thank you so much for being there for me at my worst, I wish that you will be here at my best! I hope all the happiness that you spread every day comes back to you.</p>
+        <p>You deserve every bit of happiness this world has to offer. Keep shining, keep smiling, and never stop being the incredible person you are.</p>
+        <p>Have a wonderful day and an even better year!! Have the most magical birthday ever!</p>
+        <div class="letter-signature">
+          With love & lots of hugs,
+          <span class="signature-line">— YOUR FRIEND/FAMILY —</span>
+        </div>
+        
+        <div class="stickers-container">
+          <img src="https://i.postimg.cc/x1GsgSgT/varesa.jpg" alt="Hinomori Shizuku Sticker" class="cute-sticker">
+          <img src="https://i.postimg.cc/XJD3J5yf/shizuku.jpg" alt="Cute Anime Catgirl Sticker" class="cute-sticker" style="animation-delay: -1.5s;">
+        </div>
+      </div>
+      
+      <!-- Heart Button -->
+      <button class="heart-btn" id="showHeartBtn">💖 Click for a Surprise 💖</button>
+    </div>
+  </div>
+
+  <!-- BIG SLIDING HEART -->
+  <div class="big-heart" id="bigHeart">
+    <span class="heart-emoji">❤️</span>
+    <span class="heart-text">HAPPY BIRTHDAY SADIA 🎂</span>
+  </div>
+
+  <!-- SLIDING PHOTOS SURPRISE -->
+  <div class="sliding-photos" id="slidingPhotos">
+    <div class="photo-frame">
+      <img src="https://i.postimg.cc/Cx3zLG3X/IMG-20261001-190605-965.jpg" alt="Surprise Photo">
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // --- 1. FLOATING HEARTS ---
+      const heartsContainer = document.getElementById('hearts-container');
+      const heartEmojis = ['💗', '💖', '💕', '💞', '💘', '💓', '💝'];
+      function createFloatingHeart() {
+        const heart = document.createElement('div');
+        heart.className = 'floating-heart';
+        heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.fontSize = (Math.random() * 22 + 20) + 'px';
+        heart.style.animationDuration = (Math.random() * 8 + 7) + 's';
+        heart.style.animationDelay = Math.random() * 5 + 's';
+        heart.style.opacity = '0.7';
+        heartsContainer.appendChild(heart);
+        setTimeout(() => { heart.remove(); }, 15000);
+      }
+      setInterval(createFloatingHeart, 700);
+      for (let i = 0; i < 6; i++) {
+        setTimeout(createFloatingHeart, i * 500);
+      }
+
+      // --- 2. SPARKLES ---
+      const sparklesContainer = document.getElementById('sparkles-container');
+      const sparkleEmojis = ['✨', '🌟', '💫', '⭐', '✨'];
+      function createSparkle() {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+        sparkle.style.left = Math.random() * 100 + 'vw';
+        sparkle.style.top = Math.random() * 100 + 'vh';
+        sparkle.style.fontSize = (Math.random() * 18 + 10) + 'px';
+        sparkle.style.animationDuration = (Math.random() * 2 + 1) + 's';
+        sparkle.style.animationDelay = Math.random() * 3 + 's';
+        sparklesContainer.appendChild(sparkle);
+        setTimeout(() => { sparkle.remove(); }, 4000);
+      }
+      setInterval(createSparkle, 1200);
+      for (let i = 0; i < 12; i++) {
+        setTimeout(createSparkle, i * 250);
+      }
+
+      // --- 3. CONFETTI (PINK THEME) ---
+      const canvas = document.getElementById('confetti-canvas');
+      const ctx = canvas.getContext('2d');
+      let confettiPieces = [];
+      let confettiActive = true;
+      let animationId;
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      class ConfettiPiece {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height - canvas.height;
+          this.size = Math.random() * 8 + 4;
+          this.speedY = Math.random() * 2 + 1;
+          this.speedX = Math.random() * 2 - 1;
+          this.rotation = Math.random() * 360;
+          this.rotationSpeed = Math.random() * 6 - 3;
+          const pinkHues = [330, 340, 350, 0, 10, 320, 300];
+          this.color = `hsl(${pinkHues[Math.floor(Math.random() * pinkHues.length)]}, 90%, 70%)`;
+          this.shape = Math.random() > 0.5 ? 'rect' : 'circle';
+          this.opacity = Math.random() * 0.7 + 0.3;
+        }
+        update() {
+          this.y += this.speedY;
+          this.x += this.speedX;
+          this.rotation += this.rotationSpeed;
+          if (this.y > canvas.height + 20) {
+            this.y = -20;
+            this.x = Math.random() * canvas.width;
+          }
+          if (this.x > canvas.width + 20) this.x = -20;
+          if (this.x < -20) this.x = canvas.width + 20;
+        }
+        draw() {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate((this.rotation * Math.PI) / 180);
+          ctx.globalAlpha = this.opacity;
+          ctx.fillStyle = this.color;
+          if (this.shape === 'rect') {
+            ctx.fillRect(-this.size / 2, -this.size / 4, this.size, this.size / 2);
+          } else {
+            ctx.beginPath();
+            ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+      }
+
+      function initConfetti() {
+        confettiPieces = [];
+        for (let i = 0; i < 130; i++) {
+          confettiPieces.push(new ConfettiPiece());
+        }
+      }
+
+      function animateConfetti() {
+        if (!confettiActive) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confettiPieces.forEach(piece => {
+          piece.update();
+          piece.draw();
+        });
+        animationId = requestAnimationFrame(animateConfetti);
+      }
+
+      function startConfetti() {
+        confettiActive = true;
+        initConfetti();
+        animateConfetti();
+      }
+
+      function stopConfetti() {
+        confettiActive = false;
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      startConfetti();
+
+      // --- 4. ENVELOPE OPENING & FULLSCREEN LETTER ---
+      const envelopeWrapper = document.getElementById('envelopeWrapper');
+      const envelope = document.getElementById('envelope');
+      const fullscreenLetter = document.getElementById('fullscreenLetter');
+      const closeBtn = document.getElementById('closeBtn');
+      const slidingPhotos = document.getElementById('slidingPhotos');
+      let isOpen = false;
+
+      envelopeWrapper.addEventListener('click', function() {
+        if (!isOpen) {
+          envelope.classList.add('open');
+          isOpen = true;
+          const instruction = document.querySelector('.instruction');
+          if (instruction) instruction.style.opacity = '0';
+          
+          // Celebration burst
+          triggerCelebration();
+
+          setTimeout(() => {
+            envelopeWrapper.classList.add('fade-out');
+            fullscreenLetter.classList.add('active');
+          }, 800);
+        }
+      });
+
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fullscreenLetter.classList.remove('active');
+        slidingPhotos.classList.remove('show');
+      });
+
+      // --- 5. CELEBRATION TRIGGER ---
+      function triggerCelebration() {
+        stopConfetti();
+        startConfetti();
+        for (let i = 0; i < 20; i++) {
+          setTimeout(createFloatingHeart, i * 120);
+        }
+        for (let i = 0; i < 25; i++) {
+          setTimeout(createSparkle, i * 80);
+        }
+      }
+
+      // --- 6. BIG HEART SLIDE + PHOTOS REVEAL ---
+      const bigHeart = document.getElementById('bigHeart');
+      const showHeartBtn = document.getElementById('showHeartBtn');
+      let heartAnimationInProgress = false;
+
+      showHeartBtn.addEventListener('click', function() {
+        if (heartAnimationInProgress) return;
+        heartAnimationInProgress = true;
+        
+        slidingPhotos.classList.remove('show');
+
+        bigHeart.classList.remove('center', 'left');
+        void bigHeart.offsetWidth;
+
+        bigHeart.classList.add('center');
+
+        setTimeout(() => {
+          bigHeart.classList.remove('center');
+          bigHeart.classList.add('left');
+          
+          setTimeout(() => {
+            bigHeart.classList.remove('left');
+            heartAnimationInProgress = false;
+            slidingPhotos.classList.add('show');
+          }, 2000);
+        }, 5000);
+      });
+
+      // ESC key closes fullscreen letter
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && fullscreenLetter.classList.contains('active')) {
+          fullscreenLetter.classList.remove('active');
+          slidingPhotos.classList.remove('show');
+        }
+      });
+
+    })();
+  </script>
+</body>
+    </html>
